@@ -85,7 +85,7 @@ url_Live
 def kurs():
     out = dict()
     CONNECTIONS = 100
-    TIMEOUT = 5
+    TIMEOUT = 3
 
     pro = ['94.154.208.248:80', '89.252.12.88:80', '13.66.220.17:80', '104.45.11.83:80']
     ua = UserAgent()

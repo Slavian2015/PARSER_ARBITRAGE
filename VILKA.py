@@ -65,13 +65,21 @@ def restart():
     t31 = time.time()
 
 
-    # dictionary = json.loads(Kurses.kurs())
-
-    # print(dictionary['PZM_BTC'])
     dictionary2 = json.dumps(Kurses.kurs())
-    dictionary = json.loads(dictionary2)
 
-    def live(exam):
+    t34 = time.time()
+    loaded_time = (t34 - t31)
+    print("KURSES  :", loaded_time)
+
+    if loaded_time > 3:
+        print("########      BIGGER")
+        return
+    else:
+        print("########     SMALLER")
+        pass
+
+    dictionary = json.loads(dictionary2)
+    def live2(exam):
 
         valuta = ['BTC/USD', 'LTC/USD', 'ETH/USD', 'XRP/USD', 'USDT/USD', 'BTC/USDT', 'ETH/USDT', 'XRP/BTC', 'ETH/BTC',
                   'LTC/BTC', 'BCH/BTC', 'ZEC/BTC', 'PZM/USD', 'PZM/USDT', 'PZM/BTC', ]
@@ -147,18 +155,28 @@ def restart():
         return hot
 
     alfa = {}
-    alfa.update(a('PZM/BTC', dictionary['https://btc-alpha.com/api/v1/orderbook/PZM_BTC']))
-    alfa.update(a('PZM/USD', dictionary['https://btc-alpha.com/api/v1/orderbook/PZM_USD']))
-
     hot = {}
-    hot.update(
-        ho('PZM/BTC', dictionary['https://api.hotbit.io/api/v1/order.depth?market=PZM/BTC&limit=5&interval=1e-8']))
-    hot.update(
-        ho('PZM/USDT', dictionary['https://api.hotbit.io/api/v1/order.depth?market=PZM/USDT&limit=5&interval=1e-8']))
-    live = live(dictionary['https://api.livecoin.net/exchange/all/order_book'])
+    live = {}
+    for k, v in dictionary.items():
+        if 'livecoin.net/exchange' in f'**{k}**':
+            live = live2(dictionary[k])
+        elif 'PZM/BTC&limit=5' in f'**{k}**':
+            hot.update(ho('PZM/BTC', dictionary[k]))
+        elif 'PZM/USDT&limit=5' in f'**{k}**':
+            hot.update(ho('PZM/USDT', dictionary[k]))
 
-    t34 = time.time()
-    print("KURSES  :", (t34 - t31))
+        elif 'orderbook/PZM_BTC' in f'**{k}**':
+            alfa.update(a('PZM/BTC', dictionary[k]))
+        elif 'orderbook/PZM_USD' in f'**{k}**':
+            alfa.update(a('PZM/USD', dictionary[k]))
+        else:
+            pass
+    if callable(live) == True:
+        live = {'live': {}}
+    else:
+        pass
+
+
     birgi = {'alfa': alfa, 'live': live, 'hot': hot}
 
     birga = []
@@ -170,6 +188,7 @@ def restart():
 
     ###########   Collected all kurses  ############
     def tab(item, value):
+        # print('ITEM     ################', item)
 
         for k, v in item.items():
             list = k.split('/')
@@ -289,48 +308,42 @@ def restart():
     dft.drop(['index'], axis=1, inplace=True)
     dft = dft[['TIME', 'birga_x', 'birga_y', 'rates_x', 'rates_y','valin_x','valin_y','valout_y','volume_x','volume_y','start','step','back','profit','perc']]
     dfs = dft
-
+    # dfs.to_csv(main_path_data + "\\MY_DATA.csv")
     f = open("my_tornado.json", "w")
     f.write(dictionary2)
     f.close()
 
     def wall_a():
-        Alfa = dictionary['https://btc-alpha.com/api/v1/wallets']
         wallet_a = {}
-        # print("APARSER   Wallet    :", '\n', obj)
-        for i in Alfa:
-            # print(i)
-            wallet_a.update({i['currency']: (float(i['balance']) - float(i['reserve']))})
-        return wallet_a
-    def wall_h():
-
-        regex = re.compile('^https://api.hotbit.io/api/v1/balance.query')
         for k, v in dictionary.items():
-            if re.match(regex, k):
-                Hot = dictionary[k]
-                wallet_h = {}
-
-                for i in Hot['result']:
-                    wallet_h.update({i: Hot['result'][i]['available']})
-
-                return wallet_h
+            if 'api/v1/wallets' in f'**{k}**':
+                Alfa = dictionary[k]
+                for i in Alfa:
+                    wallet_a.update({i['currency']: (float(i['balance']) - float(i['reserve']))})
             else:
                 pass
+        return wallet_a
 
-        Hot = dictionary['https://api.hotbit.io/api/v1/balance.query?api_key=a10a8a9c-623f-783b-652cff87957572df&assets=["BTC","ETH","ZEC","USDT","LTC","XRP","PZM","XLM"]&sign=EB3418C0AAE1EDE68EA34819470606EE']
+    def wall_h():
         wallet_h = {}
-
-        for i in Hot['result']:
-            wallet_h.update({i: Hot['result'][i]['available']})
-
+        for k, v in dictionary.items():
+            if 'balance.query' in f'**{k}**':
+                Hot = dictionary[k]
+                for i in Hot['result']:
+                    wallet_h.update({i: Hot['result'][i]['available']})
+            else:
+                pass
         return wallet_h
     def wall_l():
-        Live = dictionary['https://api.livecoin.net/payment/balances']
         wallet_l = {}
-        for i in Live:
-            if i['type'] == "available" and i['value'] > 0:
-                wallet_l.update({i['currency']: i['value']})
-
+        for k, v in dictionary.items():
+            if 'payment/balances' in f'**{k}**':
+                Live = dictionary[k]
+                for i in Live:
+                    if i['type'] == "available" and i['value'] > 0:
+                        wallet_l.update({i['currency']: i['value']})
+            else:
+                pass
         return wallet_l
 
     Alfa2 = wall_a()
