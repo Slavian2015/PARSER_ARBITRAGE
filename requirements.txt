@@ -2,7 +2,7 @@ aiodns==1.1.1
 aiohttp==3.6.2
 async-timeout==3.0.1
 attrs==19.3.0
-autobahn==20.4.1
+autobahn==20.12.3
 beautifulsoup4==4.9.0
 Brotli==1.0.7
 cachelib==0.1
